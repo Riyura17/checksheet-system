@@ -2,9 +2,11 @@
 require_once '../config/database.php';
 require_once '../includes/functions.php';
 
-// Install TCPDF via Composer or download manually
-// For this example, we'll use a simple HTML to PDF approach
-// In production, you should use a proper library like TCPDF, FPDF, or DomPDF
+// Autoload DomPDF
+require_once '../vendor/autoload.php';
+
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 // Get date range
 $from_date = isset($_GET['from_date']) ? $_GET['from_date'] : date('Y-m-d', strtotime('-30 days'));
@@ -21,17 +23,16 @@ $stmt = $pdo->prepare($query);
 $stmt->execute([$from_date, $to_date]);
 $checksheets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Create HTML content for PDF
+// Generate HTML content
 $html = '
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Check Sheets Report</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
+        body { font-family: DejaVu Sans, sans-serif; margin: 20px; }
         .header { text-align: center; margin-bottom: 30px; }
-        .title { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+        .title { font-size: 20px; font-weight: bold; }
         .subtitle { color: #666; margin-bottom: 15px; }
         .date-range { font-style: italic; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -78,25 +79,19 @@ $html .= '
 </body>
 </html>';
 
-// Convert HTML to PDF using DomPDF (you need to install it)
-// This is a simplified version - in production, use a proper PDF library
+// Configure DomPDF
+$options = new Options();
+$options->set('isHtml5ParserEnabled', true);
+$options->set('isPhpEnabled', true);
+$options->set('defaultFont', 'DejaVu Sans');
 
-// For this example, we'll just output the HTML with a PDF header
-header("Content-type: application/pdf");
-header("Content-Disposition: attachment; filename=check_sheets_" . date('Y-m-d') . ".pdf");
-header("Cache-Control: max-age=0");
+$dompdf = new Dompdf($options);
+$dompdf->loadHtml($html);
+$dompdf->setPaper('A4', 'portrait');
+$dompdf->render();
 
-// In a real implementation, you would use:
-// $dompdf = new Dompdf();
-// $dompdf->loadHtml($html);
-// $dompdf->setPaper('A4', 'portrait');
-// $dompdf->render();
-// $dompdf->stream("check_sheets_" . date('Y-m-d') . ".pdf", array("Attachment" => 1));
-
-// For now, we'll just output a message
-echo "<h1>PDF Export Functionality</h1>";
-echo "<p>To enable PDF export, please install DomPDF or TCPDF library.</p>";
-echo "<p>Run: composer require dompdf/dompdf</p>";
-echo "<p>Then update this file to use the library for proper PDF generation.</p>";
-
+// Output PDF as download
+$dompdf->stream("check_sheets_" . date('Y-m-d') . ".pdf", [
+    "Attachment" => true
+]);
 exit();

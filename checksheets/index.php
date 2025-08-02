@@ -79,7 +79,7 @@ $checksheets = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="btn-group">
                         <a href="export_excel.php?from_date=<?php echo $from_date; ?>&to_date=<?php echo $to_date; ?>" 
                            class="btn btn-outline-success btn-sm">
-                            <i class="fas fa-file-excel"></i> Export Excel
+                            <i class="fas fa-file-excel"></i> Export csv
                         </a>
                         <a href="export_pdf.php?from_date=<?php echo $from_date; ?>&to_date=<?php echo $to_date; ?>" 
                            class="btn btn-outline-danger btn-sm">
